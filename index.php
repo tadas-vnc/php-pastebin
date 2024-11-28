@@ -31,20 +31,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $encrypt_content = isset($_POST['encrypt_content']);
         $is_public = isset($_POST['is_public']) ? 1 : 0;
         
-        $debug_log[] = "Received data:";
-        $debug_log[] = "Title: " . $title;
-        $debug_log[] = "Content length: " . strlen($content);
-        
         if (empty($title) || empty($content)) {
             throw new Exception('Title and content are required');
         } elseif ($encrypt_content && empty($password)) {
             throw new Exception('Password is required for encryption');
         }
 
-        // Generate unique filename
-        $filename = 'pastes/' . uniqid() . '.txt';
-        $debug_log[] = "Generated filename: " . $filename;
-        
+        // Begin transaction
+        $db->exec('BEGIN TRANSACTION');
+
+        // Get the next ID
+        $result = $db->query('SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM pastes');
+        $next_id = $result->fetchArray(SQLITE3_ASSOC)['next_id'];
+
+        // Generate filename using next ID
+        $filename = 'pastes/' . $next_id . '.txt';
+
         // Store original content for database
         $db_content = $content;
         
@@ -54,12 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $content = openssl_encrypt($content, 'AES-256-CBC', $key, 0, substr($key, 0, 16));
         }
         
-        // Save content to file
-        if (file_put_contents(__DIR__ . '/' . $filename, $content) === false) {
-            throw new Exception('Error saving paste content to file');
-        }
-        
-        // Insert into database
+        // Insert into database with file_path
         $stmt = $db->prepare('
             INSERT INTO pastes 
             (title, content, file_path, user_id, ip_address, is_public, language, theme, is_encrypted, password_hash) 
@@ -91,16 +88,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$paste_id) {
             throw new Exception('Error getting paste ID: ' . $db->lastErrorMsg());
         }
+
+        // Save content to file
+        if (file_put_contents(__DIR__ . '/' . $filename, $content) === false) {
+            throw new Exception('Error saving paste content to file');
+        }
+
+        // Commit transaction
+        $db->exec('COMMIT');
         
         // Redirect to view page
         redirect("view_paste.php?id=$paste_id");
         
     } catch (Exception $e) {
+        // Rollback transaction on error
+        $db->exec('ROLLBACK');
         $error = 'Error: ' . $e->getMessage();
-        // Clean up file if it was created
-        if (isset($filename) && file_exists(__DIR__ . '/' . $filename)) {
-            unlink(__DIR__ . '/' . $filename);
-        }
         $debug_log[] = "Error occurred: " . $error;
     }
 }
@@ -239,10 +242,14 @@ if (isset($error)) {
                                         <?php echo htmlspecialchars($paste['title']); ?>
                                     </a>
                                     <div class="text-sm text-gray-600 dark:text-gray-400">
-                                        by <a href="profile.php?username=<?php echo urlencode($paste['username'] ?? 'Anonymous'); ?>" 
-                                              class="text-blue-500 hover:underline">
-                                            <?php echo $paste['username'] ?? 'Anonymous'; ?>
-                                        </a>
+                                        by <?php if (isset($paste['username'])): ?>
+                                            <a href="profile.php?username=<?php echo urlencode($paste['username']); ?>" 
+                                               class="text-blue-500 hover:underline">
+                                                <?php echo htmlspecialchars($paste['username']); ?>
+                                            </a>
+                                        <?php else: ?>
+                                            <span class="text-gray-600 dark:text-gray-400">Anonymous</span>
+                                        <?php endif; ?>
                                         <br>
                                         <?php echo date('Y-m-d H:i', strtotime($paste['created_at'])); ?>
                                     </div>

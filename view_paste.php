@@ -200,14 +200,19 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                             <div>
                                 <h1 class="text-2xl font-bold dark:text-white"><?php echo htmlspecialchars($paste['title']); ?></h1>
                                 <p class="text-gray-600 dark:text-gray-400">
-                                    by <a href="profile.php?username=<?php echo urlencode($paste['username'] ?? 'Anonymous'); ?>" 
-                                          class="text-blue-500 hover:underline">
-                                        <?php echo $paste['username'] ?? 'Anonymous'; ?>
-                                    </a> •
+                                    by <?php if (isset($paste['username'])): ?>
+                                        <a href="profile.php?username=<?php echo urlencode($paste['username']); ?>" 
+                                           class="text-blue-500 hover:underline">
+                                            <?php echo htmlspecialchars($paste['username']); ?>
+                                        </a>
+                                    <?php else: ?>
+                                        <span class="text-gray-600 dark:text-gray-400">Anonymous</span>
+                                    <?php endif; ?> •
                                     <?php echo date('Y-m-d H:i', strtotime($paste['created_at'])); ?>
                                 </p>
                             </div>
                             <div class="flex gap-4">
+                                <a href="index.php" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">New Paste</a>
                                 <?php if (isset($_SESSION['user_id'])): ?>
                                     <a href="dashboard.php" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Dashboard</a>
                                 <?php else: ?>
@@ -270,10 +275,14 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                                         <?php echo htmlspecialchars($recent['title']); ?>
                                     </a>
                                     <div class="text-sm text-gray-600 dark:text-gray-400">
-                                        by <a href="profile.php?username=<?php echo urlencode($recent['username'] ?? 'Anonymous'); ?>" 
-                                              class="text-blue-500 hover:underline">
-                                            <?php echo $recent['username'] ?? 'Anonymous'; ?>
-                                        </a>
+                                        by <?php if (isset($recent['username'])): ?>
+                                            <a href="profile.php?username=<?php echo urlencode($recent['username']); ?>" 
+                                               class="text-blue-500 hover:underline">
+                                                <?php echo htmlspecialchars($recent['username']); ?>
+                                            </a>
+                                        <?php else: ?>
+                                            <span class="text-gray-600 dark:text-gray-400">Anonymous</span>
+                                        <?php endif; ?>
                                         <br>
                                         <?php echo date('Y-m-d H:i', strtotime($recent['created_at'])); ?>
                                     </div>

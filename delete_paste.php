@@ -2,10 +2,13 @@
 require_once 'config/config.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    die('Method not allowed');
+    die(json_encode(['success' => false, 'message' => 'Method not allowed']));
 }
 
-$id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+// Get JSON data
+$json = file_get_contents('php://input');
+$data = json_decode($json, true);
+$id = isset($data['id']) ? (int)$data['id'] : 0;
 
 // Get paste info
 $stmt = $db->prepare('SELECT * FROM pastes WHERE id = :id');
@@ -23,8 +26,9 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_id'] != $paste['user_id']) {
 }
 
 // Delete the file
-if (file_exists(__DIR__ . '/' . $paste['file_path'])) {
-    unlink(__DIR__ . '/' . $paste['file_path']);
+$filename = __DIR__ . '/pastes/' . $id . '.txt';
+if (file_exists($filename)) {
+    unlink($filename);
 }
 
 // Delete from database
@@ -32,4 +36,8 @@ $stmt = $db->prepare('DELETE FROM pastes WHERE id = :id');
 $stmt->bindValue(':id', $id, SQLITE3_INTEGER);
 $result = $stmt->execute();
 
-echo json_encode(['success' => true]); 
+if ($result) {
+    echo json_encode(['success' => true]);
+} else {
+    echo json_encode(['success' => false, 'message' => 'Database error: ' . $db->lastErrorMsg()]);
+} 

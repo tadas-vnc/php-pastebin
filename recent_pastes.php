@@ -129,12 +129,8 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                                     <?php echo date('Y-m-d H:i', strtotime($paste['created_at'])); ?>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <div class="flex gap-2">
-                                        <button onclick="copyPasteContent(<?php echo $paste['id']; ?>)" 
-                                                class="text-blue-500 hover:underline">Copy</button>
-                                        <a href="raw_paste.php?id=<?php echo $paste['id']; ?>" 
-                                           class="text-gray-500 hover:underline">Raw</a>
-                                    </div>
+                                    <a href="raw_paste.php?id=<?php echo $paste['id']; ?>" 
+                                       class="text-gray-500 hover:underline">Raw</a>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
