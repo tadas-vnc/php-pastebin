@@ -1,0 +1,3 @@
+let was = null;
+was = "something"
+console.log(was);
