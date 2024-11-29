@@ -86,33 +86,44 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($pastes as $paste): ?>
-                            <tr class="border-t dark:border-gray-700">
-                                <td class="px-6 py-4 dark:text-gray-300">
-                                    <?php echo htmlspecialchars($paste['title']); ?>
-                                </td>
-                                <td class="px-6 py-4 dark:text-gray-300">
-                                    <?php echo date('Y-m-d H:i', strtotime($paste['created_at'])); ?>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <span class="<?php echo $paste['is_public'] ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'; ?> px-2 py-1 rounded-full text-sm">
-                                        <?php echo $paste['is_public'] ? 'Public' : 'Private'; ?>
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="flex gap-2">
-                                        <a href="view_paste.php?id=<?php echo $paste['id']; ?>" 
-                                           class="text-blue-500 hover:underline">View</a>
-                                        <a href="raw_paste.php?id=<?php echo $paste['id']; ?>" 
-                                           class="text-blue-500 hover:underline">Raw</a>
-                                        <a href="edit_paste.php?id=<?php echo $paste['id']; ?>" 
-                                           class="text-green-500 hover:underline">Edit</a>
-                                        <button onclick="deletePaste(<?php echo $paste['id']; ?>)" 
-                                                class="text-red-500 hover:underline">Delete</button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
+                            <?php if (empty($pastes)): ?>
+                                <tr class="border-t dark:border-gray-700">
+                                    <td class="px-6 py-4 dark:text-gray-300 text-center" colspan="4">
+                                        <div class="text-gray-600 dark:text-gray-400 text-center py-8">
+                                            <p>You don't have any pastes yet.</p>
+                                            <a href="index.php" class="text-blue-500 hover:underline mt-2 inline-block">Create your first paste</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php else: ?>
+                                <?php foreach ($pastes as $paste): ?>
+                                <tr class="border-t dark:border-gray-700">
+                                    <td class="px-6 py-4 dark:text-gray-300">
+                                        <?php echo htmlspecialchars($paste['title']); ?>
+                                    </td>
+                                    <td class="px-6 py-4 dark:text-gray-300">
+                                        <?php echo date('Y-m-d H:i', strtotime($paste['created_at'])); ?>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span class="<?php echo $paste['is_public'] ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'; ?> px-2 py-1 rounded-full text-sm">
+                                            <?php echo $paste['is_public'] ? 'Public' : 'Private'; ?>
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex gap-2">
+                                            <a href="view_paste.php?id=<?php echo $paste['id']; ?>" 
+                                               class="text-blue-500 hover:underline">View</a>
+                                            <a href="raw_paste.php?id=<?php echo $paste['id']; ?>" 
+                                               class="text-blue-500 hover:underline">Raw</a>
+                                            <a href="edit_paste.php?id=<?php echo $paste['id']; ?>" 
+                                               class="text-green-500 hover:underline">Edit</a>
+                                            <button onclick="deletePaste(<?php echo $paste['id']; ?>)" 
+                                                    class="text-red-500 hover:underline">Delete</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
