@@ -18,8 +18,121 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_id'] != $paste['user_id']) {
     die('Permission denied');
 }
 
-// Handle form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+// Handle password verification for encrypted pastes
+if ($paste['is_encrypted']) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['decrypt_password'])) {
+        $key = hash('sha256', $_POST['decrypt_password'], true);
+        $content = file_get_contents(__DIR__ . '/' . $paste['file_path']);
+        $decrypted = openssl_decrypt($content, 'AES-256-CBC', $key, 0, substr($key, 0, 16));
+        
+        if ($decrypted === false) {
+            $error = 'Invalid password';
+            // Clear any existing session data for this paste
+            unset($_SESSION['paste_edit_' . $id]);
+            // Show password form again
+            ?>
+            <!DOCTYPE html>
+            <html lang="en" class="<?php echo $isDark ? 'dark' : ''; ?>">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Password Required</title>
+                <script src="https://cdn.tailwindcss.com"></script>
+                <script>
+                    tailwind.config = {
+                        darkMode: 'class',
+                        theme: { extend: {} }
+                    }
+                </script>
+                <?php require_once 'theme.php'; ?>
+            </head>
+            <body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
+                <div class="min-h-screen flex items-center justify-center">
+                    <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md w-96">
+                        <h1 class="text-2xl font-bold mb-4 dark:text-white">Password Required</h1>
+                        <?php if (isset($error)): ?>
+                            <div class="bg-red-100 dark:bg-red-900 border border-red-400 text-red-700 dark:text-red-300 px-4 py-3 rounded mb-4">
+                                <?php echo htmlspecialchars($error); ?>
+                            </div>
+                        <?php endif; ?>
+                        <form method="POST" class="space-y-4">
+                            <div>
+                                <label class="block text-gray-700 dark:text-gray-300">Password</label>
+                                <input type="password" name="decrypt_password" class="w-full border rounded px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+                            </div>
+                            <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">
+                                Submit
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </body>
+            </html>
+            <?php
+            exit;
+        } else {
+            $_SESSION['paste_edit_' . $id] = $_POST['decrypt_password'];
+            $content = $decrypted;
+        }
+    } elseif (!isset($_SESSION['paste_edit_' . $id])) {
+        // Show password form
+        ?>
+        <!DOCTYPE html>
+        <html lang="en" class="<?php echo $isDark ? 'dark' : ''; ?>">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Password Required</title>
+            <script src="https://cdn.tailwindcss.com"></script>
+            <script>
+                tailwind.config = {
+                    darkMode: 'class',
+                    theme: { extend: {} }
+                }
+            </script>
+            <?php require_once 'theme.php'; ?>
+        </head>
+        <body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
+            <div class="min-h-screen flex items-center justify-center">
+                <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md w-96">
+                    <h1 class="text-2xl font-bold mb-4 dark:text-white">Password Required</h1>
+                    <?php if (isset($error)): ?>
+                        <div class="bg-red-100 dark:bg-red-900 border border-red-400 text-red-700 dark:text-red-300 px-4 py-3 rounded mb-4">
+                            <?php echo htmlspecialchars($error); ?>
+                        </div>
+                    <?php endif; ?>
+                    <form method="POST" class="space-y-4">
+                        <div>
+                            <label class="block text-gray-700 dark:text-gray-300">Password</label>
+                            <input type="password" name="decrypt_password" class="w-full border rounded px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+                        </div>
+                        <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">
+                            Submit
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </body>
+        </html>
+        <?php
+        exit;
+    } else {
+        // Decrypt content with stored password
+        $key = hash('sha256', $_SESSION['paste_edit_' . $id], true);
+        $content = file_get_contents(__DIR__ . '/' . $paste['file_path']);
+        $decrypted = openssl_decrypt($content, 'AES-256-CBC', $key, 0, substr($key, 0, 16));
+        
+        if ($decrypted === false) {
+            // If stored password is invalid, clear it and ask for password again
+            unset($_SESSION['paste_edit_' . $id]);
+            redirect("edit_paste.php?id=$id");
+        }
+        $content = $decrypted;
+    }
+}
+
+// Handle form submission for updating paste
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['decrypt_password'])) {
     $title = htmlspecialchars(trim($_POST['title']));
     $content = $_POST['content'];
     $language = $_POST['language'] ?? 'plaintext';
@@ -29,8 +142,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($title) || empty($content)) {
         $error = 'Title and content are required';
     } else {
-        // Update file content
-        file_put_contents(__DIR__ . '/' . $paste['file_path'], $content);
+        // Re-encrypt content if paste is encrypted
+        if ($paste['is_encrypted']) {
+            $key = hash('sha256', $_SESSION['paste_edit_' . $id], true);
+            $encrypted_content = openssl_encrypt($content, 'AES-256-CBC', $key, 0, substr($key, 0, 16));
+            file_put_contents(__DIR__ . '/' . $paste['file_path'], $encrypted_content);
+        } else {
+            file_put_contents(__DIR__ . '/' . $paste['file_path'], $content);
+        }
 
         // Update database
         $stmt = $db->prepare('
@@ -51,6 +170,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindValue(':id', $id, SQLITE3_INTEGER);
 
         if ($stmt->execute()) {
+            // Clear the edit session variable
+            unset($_SESSION['paste_edit_' . $id]);
             redirect("view_paste.php?id=$id");
         } else {
             $error = 'Error updating paste';
@@ -58,10 +179,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Read current content
-$content = file_get_contents(__DIR__ . '/' . $paste['file_path']);
-if ($paste['is_encrypted']) {
-    die('Encrypted pastes cannot be edited');
+// If not encrypted or already decrypted, read current content
+if (!isset($content)) {
+    $content = file_get_contents(__DIR__ . '/' . $paste['file_path']);
+    if ($paste['is_encrypted']) {
+        $key = hash('sha256', $_SESSION['paste_edit_' . $id], true);
+        $content = openssl_decrypt($content, 'AES-256-CBC', $key, 0, substr($key, 0, 16));
+    }
 }
 ?>
 

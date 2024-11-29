@@ -84,8 +84,70 @@ if ($paste['password_hash']) {
 // Read and decrypt content if necessary
 $content = file_get_contents(__DIR__ . '/' . $paste['file_path']);
 if ($paste['is_encrypted']) {
-    $key = hash('sha256', $_POST['password'], true);
-    $content = openssl_decrypt($content, 'AES-256-CBC', $key, 0, substr($key, 0, 16));
+    if (!isset($_POST['password']) && !isset($_SESSION['paste_access_' . $id])) {
+        // Show password form
+        ?>
+        <!DOCTYPE html>
+        <html lang="en" class="<?php echo $isDark ? 'dark' : ''; ?>">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Password Required</title>
+            <script src="https://cdn.tailwindcss.com"></script>
+            <script>
+                tailwind.config = {
+                    darkMode: 'class',
+                    theme: { extend: {} }
+                }
+            </script>
+            <?php require_once 'theme.php'; ?>
+        </head>
+        <body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
+            <div class="min-h-screen flex items-center justify-center">
+                <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md w-96">
+                    <h1 class="text-2xl font-bold mb-4 dark:text-white">Password Required</h1>
+                    <?php if ($password_error): ?>
+                        <div class="bg-red-100 dark:bg-red-900 border border-red-400 text-red-700 dark:text-red-300 px-4 py-3 rounded mb-4">
+                            Incorrect password
+                        </div>
+                    <?php endif; ?>
+                    <form method="POST" class="space-y-4">
+                        <div>
+                            <label class="block text-gray-700 dark:text-gray-300">Password</label>
+                            <input type="password" name="password" class="w-full border rounded px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+                        </div>
+                        <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">
+                            Submit
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </body>
+        </html>
+        <?php
+        exit;
+    }
+    
+    $password = $_POST['password'] ?? $_SESSION['paste_access_' . $id] ?? null;
+    if ($password === null) {
+        die('Password required');
+    }
+    
+    $key = hash('sha256', $password, true);
+    $decrypted = openssl_decrypt($content, 'AES-256-CBC', $key, 0, substr($key, 0, 16));
+    
+    if ($decrypted === false) {
+        // Clear invalid session access if it exists
+        unset($_SESSION['paste_access_' . $id]);
+        redirect("view_paste.php?id=$id");
+    }
+    
+    // Store valid password in session
+    if (isset($_POST['password'])) {
+        $_SESSION['paste_access_' . $id] = $_POST['password'];
+    }
+    
+    $content = $decrypted;
 }
 
 // Get recent pastes
