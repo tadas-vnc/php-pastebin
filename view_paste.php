@@ -177,6 +177,14 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/<?php echo htmlspecialchars($paste['theme']); ?>.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/plugins/highlightjs-line-numbers.min.js"></script>
+    <?php $language = htmlspecialchars($paste['language']);
+    $core_languages = ['xml', 'javascript', 'css', 'php', 'html', 'python', 'java', 'cpp', 'sql'];
+
+    if ($language !== 'plaintext' && !in_array($language, $core_languages)) {
+        echo "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/{$language}.min.js\"></script>\n";
+    }
+    ?>
+
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -258,7 +266,7 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                 <div class="lg:col-span-3">
                     <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
                         <!-- Header -->
-                        <div class="flex justify-between items-center mb-6">
+                        <div class="flex justify-between items-center mb-6 flex-wrap">
                             <div>
                                 <h1 class="text-2xl font-bold dark:text-white"><?php echo htmlspecialchars($paste['title']); ?></h1>
                                 <p class="text-gray-600 dark:text-gray-400">
@@ -389,9 +397,12 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                 });
             }
         }
-
+        hljs.configure({
+            ignoreUnescapedHTML: true
+        });
         hljs.highlightAll();
         hljs.initLineNumbersOnLoad();
+        
     </script>
 </body>
 </html> 

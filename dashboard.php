@@ -54,7 +54,7 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
     <div class="min-h-screen p-6">
         <div class="max-w-6xl mx-auto">
             <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                <div class="flex justify-between items-center mb-6">
+                <div class="flex justify-between items-center mb-6 flex-wrap">
                     <h1 class="text-2xl font-bold dark:text-white">Welcome, <?php echo htmlspecialchars($username); ?>!</h1>
                     <div class="flex gap-4">
                         <a href="index.php" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">

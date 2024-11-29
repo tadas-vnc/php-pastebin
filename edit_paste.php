@@ -236,14 +236,68 @@ if (!isset($content)) {
                     
                     <div>
                         <label class="block text-gray-700 dark:text-gray-300 mb-2">Syntax Language</label>
+                        <?php 
+                        $languages = [
+                            'Common' => [
+                                'plaintext' => 'Plain Text',
+                                'html' => 'HTML',
+                                'css' => 'CSS',
+                                'javascript' => 'JavaScript',
+                                'php' => 'PHP',
+                                'python' => 'Python',
+                                'java' => 'Java'
+                            ],
+                            'Web Development' => [
+                                'typescript' => 'TypeScript',
+                                'jsx' => 'React JSX',
+                                'vue' => 'Vue',
+                                'xml' => 'XML',
+                                'json' => 'JSON',
+                                'yaml' => 'YAML',
+                                'markdown' => 'Markdown'
+                            ],
+                            'Programming' => [
+                                'cpp' => 'C++',
+                                'csharp' => 'C#',
+                                'go' => 'Go',
+                                'rust' => 'Rust',
+                                'swift' => 'Swift',
+                                'kotlin' => 'Kotlin',
+                                'ruby' => 'Ruby',
+                                'perl' => 'Perl',
+                                'scala' => 'Scala',
+                                'haskell' => 'Haskell',
+                                'lua' => 'Lua'
+                            ],
+                            'Database' => [
+                                'sql' => 'SQL',
+                                'mongodb' => 'MongoDB',
+                                'redis' => 'Redis'
+                            ],
+                            'Shell' => [
+                                'bash' => 'Bash',
+                                'powershell' => 'PowerShell',
+                                'shell' => 'Shell'
+                            ],
+                            'Configuration' => [
+                                'ini' => 'INI',
+                                'toml' => 'TOML',
+                                'dockerfile' => 'Dockerfile',
+                                'nginx' => 'Nginx',
+                                'apache' => 'Apache'
+                            ]
+                        ];
+                        ?>
                         <select name="language" class="w-full border rounded px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                            <?php
-                            $languages = ['plaintext', 'javascript', 'python', 'php', 'html', 'css', 'sql', 'java', 'cpp'];
-                            foreach ($languages as $lang) {
-                                $selected = $lang === $paste['language'] ? 'selected' : '';
-                                echo "<option value=\"$lang\" $selected>" . ucfirst($lang) . "</option>";
-                            }
-                            ?>
+                            <?php foreach ($languages as $group => $options): ?>
+                                <optgroup label="<?php echo htmlspecialchars($group); ?>">
+                                    <?php foreach ($options as $value => $label): ?>
+                                        <option value="<?php echo htmlspecialchars($value); ?>" <?php echo $paste['language'] === $value ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($label); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </optgroup>
+                            <?php endforeach; ?>
                         </select>
                     </div>
 

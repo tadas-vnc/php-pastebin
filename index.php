@@ -180,19 +180,68 @@ if (isset($error)) {
                                 <textarea name="content" rows="15" class="w-full border rounded px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white font-mono" required></textarea>
                             </div>
                             
-                            <div>
-                                <label class="block text-gray-700 dark:text-gray-300 mb-2">Syntax Language</label>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 dark:text-gray-300 mb-2">Language</label>
                                 <select name="language" class="w-full border rounded px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                                    <option value="plaintext">Plain Text</option>
-                                    <option value="javascript">JavaScript</option>
-                                    <option value="python">Python</option>
-                                    <option value="php">PHP</option>
-                                    <option value="html">HTML</option>
-                                    <option value="css">CSS</option>
-                                    <option value="sql">SQL</option>
-                                    <option value="java">Java</option>
-                                    <option value="cpp">C++</option>
-                                    <!-- Add more languages as needed -->
+                                    <!-- Common Languages -->
+                                    <optgroup label="Common">
+                                        <option value="plaintext">Plain Text</option>
+                                        <option value="html">HTML</option>
+                                        <option value="css">CSS</option>
+                                        <option value="javascript">JavaScript</option>
+                                        <option value="php">PHP</option>
+                                        <option value="python">Python</option>
+                                        <option value="java">Java</option>
+                                    </optgroup>
+                                    
+                                    <!-- Web Development -->
+                                    <optgroup label="Web Development">
+                                        <option value="typescript">TypeScript</option>
+                                        <option value="jsx">React JSX</option>
+                                        <option value="vue">Vue</option>
+                                        <option value="xml">XML</option>
+                                        <option value="json">JSON</option>
+                                        <option value="yaml">YAML</option>
+                                        <option value="markdown">Markdown</option>
+                                    </optgroup>
+                                    
+                                    <!-- Programming Languages -->
+                                    <optgroup label="Programming">
+                                        <option value="cpp">C++</option>
+                                        <option value="csharp">C#</option>
+                                        <option value="go">Go</option>
+                                        <option value="rust">Rust</option>
+                                        <option value="swift">Swift</option>
+                                        <option value="kotlin">Kotlin</option>
+                                        <option value="ruby">Ruby</option>
+                                        <option value="perl">Perl</option>
+                                        <option value="scala">Scala</option>
+                                        <option value="haskell">Haskell</option>
+                                        <option value="lua">Lua</option>
+                                    </optgroup>
+                                    
+                                    <!-- Database -->
+                                    <optgroup label="Database">
+                                        <option value="sql">SQL</option>
+                                        <option value="mongodb">MongoDB</option>
+                                        <option value="redis">Redis</option>
+                                    </optgroup>
+                                    
+                                    <!-- Shell Scripts -->
+                                    <optgroup label="Shell">
+                                        <option value="bash">Bash</option>
+                                        <option value="powershell">PowerShell</option>
+                                        <option value="shell">Shell</option>
+                                    </optgroup>
+                                    
+                                    <!-- Configuration -->
+                                    <optgroup label="Configuration">
+                                        <option value="ini">INI</option>
+                                        <option value="toml">TOML</option>
+                                        <option value="dockerfile">Dockerfile</option>
+                                        <option value="nginx">Nginx</option>
+                                        <option value="apache">Apache</option>
+                                    </optgroup>
                                 </select>
                             </div>
 
